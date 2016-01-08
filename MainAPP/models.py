@@ -47,10 +47,6 @@ class CustomUser(AbstractUser):
         auto_now=True,
         verbose_name=_ug('Last edition date')
     )
-    hidden = models.BooleanField(
-        default=False,
-        verbose_name=_ug('Hidden')
-    )
 
     class Meta:
         verbose_name = _ug('User')
@@ -69,21 +65,17 @@ class CustomUser(AbstractUser):
         super(CustomUser, self).save(*args, **kwargs)
 
     def delete(self, *args):
-        if self.hidden is True:
+        if self.active is False:
             super(CustomUser, self).delete(*args)
         else:
-            self.hidden = True
             self.active = False
             self.save()
 
     def __str__(self):
         return "%s - %s %s" % (self.username, self.first_name, self.last_name)
 
-    def get_fullname(self):
-        return "%s" % self.fullname
-
     def get_full_name(self):
-        return self.get_fullname()
+        return super(CustomUser, self).get_full_name()
 
     def get_username(self):
         return "%s" % self.username
