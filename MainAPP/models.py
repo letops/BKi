@@ -7,6 +7,84 @@ from MainAPP import hardcode
 
 # Custom user which inherits from an AbstractUser and uses the code in
 #  backends.py to authenticate and validate permissions
+class Role(models.Model):
+    name = models.CharField(
+        max_length=hardcode.role_name_length,
+        blank=False,
+        null=False,
+        verbose_name=_ug('Name')
+    )
+    description = models.CharField(
+        max_length=hardcode.role_description_length,
+        blank=True,
+        null=True,
+        verbose_name=_ug('Description')
+    )
+    hidden = models.BooleanField(
+        default=False,
+        blank=True
+    )
+
+    def __str__(self):
+        return "%s" % self.name
+
+    def delete(self, *args):
+        if self.hidden is True:
+            super(Role, self).delete(*args)
+        else:
+            self.hidden = True
+            self.save()
+
+    class Meta:
+        verbose_name = _ug('Role')
+        verbose_name_plural = _ug('Roles')
+        permissions = (
+            ('query_role', 'Query Role'),
+            ('list_role', 'List Roles'),
+        )
+
+
+class Privilege(models.Model):
+    roles = models.ManyToManyField(
+        Role,
+        related_name='privileges',
+        verbose_name=_ug('Roles')
+    )
+    action = models.CharField(
+        max_length=hardcode.privilege_action_length,
+        blank=False,
+        null=False,
+        verbose_name=_ug('Action')
+    )
+    read
+    create
+    update
+    delete
+    execute
+    hidden = models.BooleanField(
+        default=False,
+        blank=True
+    )
+
+    def __str__(self):
+        return "%s" % self.name
+
+    def delete(self, *args):
+        if self.hidden is True:
+            super(Role, self).delete(*args)
+        else:
+            self.hidden = True
+            self.save()
+
+    class Meta:
+        verbose_name = _ug('Role')
+        verbose_name_plural = _ug('Roles')
+        permissions = (
+            ('query_role', 'Query Role'),
+            ('list_role', 'List Roles'),
+        )
+
+
 class CustomUser(AbstractUser):
     nickname = models.CharField(
         max_length=hardcode.user_nickname_length,
@@ -14,6 +92,17 @@ class CustomUser(AbstractUser):
         null=True,
         verbose_name=_ug('Nickname')
     )
+    role = models.ManyToManyField(
+        Role,
+        related_name='customusers',
+        verbose_name=_ug('Custom users')
+    )
+    privileges = models.ManyToManyField(
+        Privilege,
+        related_name='customusers',
+        verbose_name=_ug('Privileges')
+    )
+    **
     avatar = ThumbnailerImageField(
         upload_to=hardcode.user_avatar_upload,
         default=hardcode.user_default_photo,

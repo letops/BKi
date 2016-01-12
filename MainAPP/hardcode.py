@@ -1,6 +1,9 @@
 from django.utils.translation import ugettext as _ug
 import os
 
+role_name_length = 45
+role_description_length = 256
+
 user_nickname_length = 30
 user_default_photo = "users/avatars/no-img.jpg"
 user_description_length = 500
