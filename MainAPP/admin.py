@@ -2,8 +2,11 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from MainAPP import models, forms
 
+admin.site.register(models.Role)
+admin.site.register(models.Privilege)
+admin.site.register(models.Company)
 
-# Register your models here.
+
 @admin.register(models.CustomUser)
 class CustomUserAdmin(UserAdmin):
     form = forms.CustomUserChangeForm
@@ -27,3 +30,5 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ('email', 'username',)
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
+
+

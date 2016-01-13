@@ -46,6 +46,8 @@ INSTALLED_APPS = (
     'easy_thumbnails',
     'MainAPP',
     'Rebates',
+    'Utilities',
+
 )
 
 MIDDLEWARE_CLASSES = (

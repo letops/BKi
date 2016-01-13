@@ -96,45 +96,6 @@ class Utility(models.Model):
         )
 
 
-class PoliticalAreaUtility(models.Model):
-    utility = models.ForeignKey(
-        Utility,
-        related_name='political_area_utilities',
-        blank=False,
-        null=False,
-        verbose_name=_ug('Utility')
-    )
-    political_area = models.ForeignKey(
-        PoliticalArea,
-        related_name='political_area_utilities',
-        blank=False,
-        null=False,
-        verbose_name=_ug('Political Area')
-    )
-    hidden = models.BooleanField(
-        default=False,
-        blank=True
-    )
-
-    def __str__(self):
-        return "%s %s" % (self.utility, self.political_area)
-
-    def delete(self, *args):
-        if self.hidden is True:
-            super(PoliticalAreaUtility, self).delete(*args)
-        else:
-            self.hidden = True
-            self.save()
-
-    class Meta:
-        verbose_name = _ug('Political Area Utility')
-        verbose_name_plural = _ug('Political Area Utilities')
-        permissions = (
-            ('query_politicalareautility', 'Query Political Area Utility'),
-            ('list_politicalareautility', 'List Political Area Utilities'),
-        )
-
-
 class PoliticalAreaType(models.Model):
     name = models.CharField(
         max_length=hardcode.politicalareatype_name_length,
@@ -269,6 +230,45 @@ class PoliticalArea(models.Model):
         permissions = (
             ('query_politicalarea', 'Query Political Area'),
             ('list_politicalarea', 'List Political Area'),
+        )
+
+
+class PoliticalAreaUtility(models.Model):
+    utility = models.ForeignKey(
+        Utility,
+        related_name='political_area_utilities',
+        blank=False,
+        null=False,
+        verbose_name=_ug('Utility')
+    )
+    political_area = models.ForeignKey(
+        PoliticalArea,
+        related_name='political_area_utilities',
+        blank=False,
+        null=False,
+        verbose_name=_ug('Political Area')
+    )
+    hidden = models.BooleanField(
+        default=False,
+        blank=True
+    )
+
+    def __str__(self):
+        return "%s %s" % (self.utility, self.political_area)
+
+    def delete(self, *args):
+        if self.hidden is True:
+            super(PoliticalAreaUtility, self).delete(*args)
+        else:
+            self.hidden = True
+            self.save()
+
+    class Meta:
+        verbose_name = _ug('Political Area Utility')
+        verbose_name_plural = _ug('Political Area Utilities')
+        permissions = (
+            ('query_politicalareautility', 'Query Political Area Utility'),
+            ('list_politicalareautility', 'List Political Area Utilities'),
         )
 
 

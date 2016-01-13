@@ -1,7 +1,6 @@
 from django.contrib.auth.models import Group
 from django.db import models
 from django.utils.translation import ugettext as _ug
-from easy_thumbnails.fields import ThumbnailerImageField
 from MainAPP import models as main_models
 from Rebates import hardcode
 from Utilities import models as utility_models
@@ -88,6 +87,54 @@ class Project(models.Model):
         )
 
 
+class URL(models.Model):
+    url = models.CharField(
+        max_length=hardcode.url_name_length,
+        blank=False,
+        null=False,
+        verbose_name=_ug('URL')
+    )
+    cached_until = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name=_ug('Cached until')
+    )
+    utility = models.ForeignKey(
+        utility_models.Utility,
+        related_name='url',
+        blank=False,
+        null=False,
+        verbose_name=_ug('Utility')
+    )
+    valid = models.BooleanField(
+        default=False,
+        blank=True,
+        verbose_name=_ug('Valid')
+    )
+    hidden = models.BooleanField(
+        default=False,
+        blank=True
+    )
+
+    def __str__(self):
+        return "%s" % self.url
+
+    def delete(self, *args):
+        if self.hidden is True:
+            super(URL, self).delete(*args)
+        else:
+            self.hidden = True
+            self.save()
+
+    class Meta:
+        verbose_name = _ug('URL')
+        verbose_name_plural = _ug('URLs')
+        permissions = (
+            ('query_url', 'Query URL'),
+            ('list_url', 'List URLs'),
+        )
+
+
 class RawRebate(models.Model):
     project_title = models.CharField(
         max_length=hardcode.rawrebate_projecttitle_length,
@@ -102,14 +149,16 @@ class RawRebate(models.Model):
         null=False,
         verbose_name=_ug('Utility')
     )
-    minrebate = models.CharField(
-        max_length=hardcode.rawrebate_minrebate_length,
+    minrebate = models.DecimalField(
+        max_digits=hardcode.rawrebate_minrebate_maxdigits,
+        decimal_places=hardcode.rawrebate_minrebate_decimalplaces,
         blank=True,
         null=True,
         verbose_name=_ug('Minimum Rebate')
     )
-    maxrebate = models.CharField(
-        max_length=hardcode.rawrebate_maxrebate_length,
+    maxrebate = models.DecimalField(
+        max_digits=hardcode.rawrebate_maxrebate_maxdigits,
+        decimal_places=hardcode.rawrebate_maxrebate_decimalplaces,
         blank=True,
         null=True,
         verbose_name=_ug('Maximum Rebate')
@@ -138,18 +187,18 @@ class RawRebate(models.Model):
         verbose_name=_ug('Eligible if installing')
     )
     electric = models.BooleanField(
+        default=False,
         blank=True,
-        null=True,
         verbose_name=_ug('Electric')
     )
     natural_gas = models.BooleanField(
+        default=False,
         blank=True,
-        null=True,
         verbose_name=_ug('Natural gas')
     )
     water = models.BooleanField(
+        default=False,
         blank=True,
-        null=True,
         verbose_name=_ug('Water')
     )
     source_link = models.ForeignKey(
@@ -185,8 +234,8 @@ class RawRebate(models.Model):
         verbose_name=_ug('End date')
     )
     active = models.BooleanField(
+        default=False,
         blank=True,
-        null=True,
         verbose_name=_ug('Active')
     )
     published_rebate = models.ForeignKey(
@@ -217,54 +266,6 @@ class RawRebate(models.Model):
         permissions = (
             ('query_rawrebate', 'Query Raw Rebate'),
             ('list_rawrebate', 'List Raw Rebates'),
-        )
-
-
-class URL(models.Model):
-    url = models.CharField(
-        max_length=hardcode.url_name_length,
-        blank=False,
-        null=False,
-        verbose_name=_ug('URL')
-    )
-    cached_until = models.DateTimeField(
-        blank=True,
-        null=True,
-        verbose_name=_ug('Cached until')
-    )
-    utility = models.ForeignKey(
-        utility_models.Utility,
-        related_name='url',
-        blank=False,
-        null=False,
-        verbose_name=_ug('Utility')
-    )
-    valid = models.BooleanField(
-        blank=True,
-        null=True,
-        verbose_name=_ug('Valid')
-    )
-    hidden = models.BooleanField(
-        default=False,
-        blank=True
-    )
-
-    def __str__(self):
-        return "%s" % self.url
-
-    def delete(self, *args):
-        if self.hidden is True:
-            super(URL, self).delete(*args)
-        else:
-            self.hidden = True
-            self.save()
-
-    class Meta:
-        verbose_name = _ug('URL')
-        verbose_name_plural = _ug('URLs')
-        permissions = (
-            ('query_url', 'Query URL'),
-            ('list_url', 'List URLs'),
         )
 
 
@@ -312,7 +313,7 @@ class URLMonitor(models.Model):
     )
     user_verified = models.ForeignKey(
         main_models.CustomUser,
-        related_name='urlmonitor',
+        related_name='urlmonitor_verified',
         blank=False,
         null=False,
         verbose_name=_ug('User Verified')
@@ -328,8 +329,8 @@ class URLMonitor(models.Model):
         verbose_name=_ug('Checked on')
     )
     active = models.BooleanField(
+        default=True,
         blank=True,
-        null=True,
         verbose_name=_ug('Active')
     )
     hidden = models.BooleanField(
@@ -342,7 +343,7 @@ class URLMonitor(models.Model):
 
     def delete(self, *args):
         if self.hidden is True:
-            super(Post, self).delete(*args)
+            super(URLMonitor, self).delete(*args)
         else:
             self.hidden = True
             self.save()
@@ -422,7 +423,7 @@ class Post(models.Model):
         )
 
 
-class Approvals(models.Model):
+class Approval(models.Model):
     rawrebate = models.ForeignKey(
         RawRebate,
         related_name='approvals',
@@ -438,24 +439,24 @@ class Approvals(models.Model):
         verbose_name=_ug('User')
     )
     approved = models.BooleanField(
+        default=False,
         blank=True,
-        null=True,
-        verbose_name=_ug('Approved')
+        verbose_name=_ug('Approved?')
     )
     submitted = models.BooleanField(
+        default=False,
         blank=True,
-        null=True,
-        verbose_name=_ug('Submitted')
+        verbose_name=_ug('Submitted?')
     )
     rejected = models.BooleanField(
+        default=False,
         blank=True,
-        null=True,
-        verbose_name=_ug('Rejected')
+        verbose_name=_ug('Rejected?')
     )
     stalled = models.BooleanField(
+        default=False,
         blank=True,
-        null=True,
-        verbose_name=_ug('Stalled')
+        verbose_name=_ug('Stalled?')
     )
     post = models.ForeignKey(
         Post,
@@ -478,7 +479,7 @@ class Approvals(models.Model):
 
     def delete(self, *args):
         if self.hidden is True:
-            super(Approvals, self).delete(*args)
+            super(Approval, self).delete(*args)
         else:
             self.hidden = True
             self.save()
